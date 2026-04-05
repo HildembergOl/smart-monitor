@@ -8,13 +8,15 @@ O projeto foi desenvolvido para funcionar continuamente ("24/7") como um serviç
 
 ## 🛠 Tecnologias Utilizadas
 - **Linguagem Principal:** Node.js com TypeScript (`tsx` para execução moderna e limpa de arquivos `.ts`).
-- **Banco de Dados Local (Buffer e Config.):** `sqlite3`
+- **Banco de Dados Local (Buffer e Config.):** SQLite com `@journeyapps/sqlcipher`
   - Utilizado como área de "Buffer Seguro" ("Store-and-Forward") garantindo que métricas não se percam caso a internet do cliente caia.
+  - Criptografia em nível de arquivo (AES-256) via `PRAGMA key`.
 - **Banco de Dados Alvo (Remote & Local):** `mssql` (Driver Oficial do SQL Server)
 - **Agendamento de Tarefas:** `node-cron`
 - **Interface de Terminal (CLI):** Modos brutos do teclado (`process.stdin.setRawMode`) integrados com o pacote nativo `readline`. 
 - **Backups:** `archiver` (para empacotamento)
 - **Notificação / Alertas:** Integrações contidas no módulo lib `notifier.ts` (bem como injeção direta de `WARNING` e `CRITICAL` via banco).
+- **Compilação e Build:** `nexe` (para geração de executável standalone v1.x.x).
 
 ---
 
@@ -53,3 +55,8 @@ O projeto foi desenvolvido para funcionar continuamente ("24/7") como um serviç
   2. **CHECKS_LOG**: Tabelas Vermelho/Verde do DBCC sinalizando OK ou FAIL por cliente.
   3. **BACKUP_LOG**: Grade para atestar se existe backup (last_backup) com sucesso de transações/Diff/Full.
   4. **ALERTS**: Tabela de notificação textual onde os crashs, perdas de conexão com a cloud ou falhas internas aparecem categorizados como `CRITICAL` ou `WARNING`.
+
+### 5. Segurança e Empacotamento
+- **Configurações Engessadas (Baked-in)**: Para evitar arquivos `.env` externos no cliente, o processo de build (`nexe.compile.mjs`) realiza uma substituição literal de strings no código-fonte, "chumbando" o IP, Usuário e Senhas de produção diretamente dentro do binário.
+- **Versionamento Automático**: O build gerencia o versionamento via `npm version patch` e gera executáveis nomeados dinamicamente (ex: `SmartMonitor_v1.0.8.exe`).
+- **Independência**: O executável é 100% portátil, exigindo apenas que os drivers nativos do SQLCipher (presentes no `node_modules` durante o build) sejam empacotados corretamente para execução em ambientes Windows x64.
