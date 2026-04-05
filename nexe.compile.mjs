@@ -16,29 +16,36 @@ compile({
   ico: "./icon.ico",
   patches: [
     async (compiler, next) => {
-      // 🚀 INJEÇÃO DE AMBIENTE (BAKED-IN)
-      // Lemos o .env local e o transformamos em código JS para o binário
+      // 🚀 SUBSTITUIÇÃO LITERAL (ENGESSAR AS INFORMAÇÕES)
       if (fs.existsSync("./.env")) {
         const envContent = fs.readFileSync("./.env", "utf8");
         const envLines = envContent
           .split("\n")
           .map(l => l.trim())
           .filter(l => l && !l.startsWith("#") && l.includes("="));
-        
-        let injectionCode = "\n// --- BAKE-IN ENVIRONMENT ---\n";
+
+        // Pegamos o conteúdo do bundle principal
+        let bundleContent = await compiler.readFileAsync("./dist/main.js");
+        let code = bundleContent.contents;
+
+        console.log("🛠️ Iniciando substituição de variáveis no código...");
+
         envLines.forEach(line => {
           const [key, ...valParts] = line.split("=");
-          const val = valParts.join("=").replace(/'/g, "\\'");
-          injectionCode += `process.env['${key.trim()}'] = '${val.trim()}';\n`;
+          const k = key.trim();
+          const v = valParts.join("=").trim().replace(/'/g, "\\'");
+
+          // Substitui tanto process.env.KEY quanto process.env['KEY'] quanto process.env["KEY"]
+          const regexStr = `process\\.env\\.?\\[?['"]?${k}['"]?\\]?`;
+          const regex = new RegExp(regexStr, "g");
+          
+          code = code.replace(regex, `'${v}'`);
+          console.log(`  ✅ ${k} -> [REPLACED]`);
         });
 
-        // Injetamos as variáveis no TOPO do arquivo de entrada no sistema virtual do nexe
-        const originalInput = await compiler.readFileAsync("./dist/main.js");
-        await compiler.setFileContentsAsync(
-          "./dist/main.js",
-          injectionCode + originalInput.contents,
-        );
-        console.log("💉 Configurações do .env injetadas com sucesso no binário!");
+        // Grava o código "engessado" de volta no sistema virtual do nexe
+        await compiler.setFileContentsAsync("./dist/main.js", code);
+        console.log("💉 Configurações aplicadas e engessadas no binário final!");
       }
       return next();
     },
