@@ -1,11 +1,11 @@
 {
   "name": "smart-monitor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "src/main.ts",
   "scripts": {
     "start": "tsx --no-warnings src/main.ts",
     "build": "tsc",
-    "nexe": "npm run build && node nexe.compile.mjs"
+    "nexe": "npm version patch --no-git-tag-version && npm run build && node nexe.compile.mjs"
   },
   "dependencies": {
     "@journeyapps/sqlcipher": "^5.3.1",

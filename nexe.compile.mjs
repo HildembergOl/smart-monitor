@@ -1,10 +1,10 @@
 import { compile } from "nexe";
 import fs from "fs";
 
-// 📖 Como funciona o versionamento dinâmico:
-// 1. Lemos o arquivo package.json que contém a verdade sobre a versão do projeto.
-// 2. Extraímos a propriedade "version" (ex: 1.0.0).
-// 3. Usamos essa variável para nomear o executável final de forma organizada.
+// 📖 Como funciona o versionamento AUTOMÁTICO:
+// 1. O script 'nexe' no package.json agora roda "npm version patch" antes de tudo.
+// 2. Isso aumenta automaticamente o número da versão no package.json (ex: 1.0.0 -> 1.0.1).
+// 3. Em seguida, este script lê a versão ATUALIZADA e nomeia o executável.
 const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"));
 const version = packageJson.version;
 
