@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { iniciarAgendamentos } from "./backup/scheduler";
 import { dbSqlite } from "./database/sqlite";
 import { initDB } from "./database/sqlite-init";

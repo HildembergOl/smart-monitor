@@ -80,6 +80,22 @@ export async function loadConfig() {
     },
   };
 
+  // Sobrescreve configurações via variáveis de ambiente (.env) se existirem
+  if (process.env.PROD_SERVER) config.ambiente.producao.server = process.env.PROD_SERVER;
+  if (process.env.PROD_USER) config.ambiente.producao.user = process.env.PROD_USER;
+  if (process.env.PROD_PASS) config.ambiente.producao.password = process.env.PROD_PASS;
+  if (process.env.PROD_DATABASE) config.ambiente.producao.database = process.env.PROD_DATABASE;
+  if (process.env.PROD_PORT) config.ambiente.producao.port = Number(process.env.PROD_PORT);
+  if (process.env.PROD_ENCRYPT) config.ambiente.producao.options.encrypt = process.env.PROD_ENCRYPT === "1";
+  if (process.env.PROD_TRUST_CERT) config.ambiente.producao.options.trustServerCertificate = process.env.PROD_TRUST_CERT === "1";
+
+  if (process.env.EMAIL_HOST) config.email.host = process.env.EMAIL_HOST;
+  if (process.env.EMAIL_PORT) config.email.port = Number(process.env.EMAIL_PORT);
+  if (process.env.EMAIL_USER) config.email.auth.user = process.env.EMAIL_USER;
+  if (process.env.EMAIL_PASS) config.email.auth.pass = process.env.EMAIL_PASS;
+  if (process.env.EMAIL_TO) config.email.to = process.env.EMAIL_TO;
+  if (process.env.EMAIL_SECURE) config.email.secure = process.env.EMAIL_SECURE === "1";
+
   // Disponibiliza em variável global
   global.AppConfig = config;
 

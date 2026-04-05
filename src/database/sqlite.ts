@@ -1,7 +1,7 @@
 import sqlite3 from "@journeyapps/sqlcipher";
 import { open, Database } from "sqlite";
 
-export const DB_PASSWORD = "DevSmart@MS9";
+export const DB_PASSWORD = process.env.SQLITE_PASSWORD || "DevSmart@MS9";
 
 export async function dbSqlite(): Promise<Database> {
   const dbPath = "smart-monitor-v2.db";
