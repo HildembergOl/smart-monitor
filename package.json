@@ -1,9 +1,11 @@
 {
   "name": "smart-monitor",
   "version": "1.0.0",
-  "main": "main.ts",
+  "main": "src/main.ts",
   "scripts": {
-    "start": "tsx --no-warnings main.ts"
+    "start": "tsx --no-warnings src/main.ts",
+    "build": "tsc",
+    "nexe": "npm run build && node nexe.compile.mjs"
   },
   "dependencies": {
     "@journeyapps/sqlcipher": "^5.3.1",
@@ -24,6 +26,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.11",
     "@types/readline-sync": "^1.4.8",
+    "nexe": "^5.0.0-beta.4",
     "tsx": "^4.21.0",
     "typescript": "^5.4.5"
   }

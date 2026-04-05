@@ -46,5 +46,18 @@ Os dados são sincronizados para quatro tabelas principais para consumo via Graf
 - `BACKUP_LOG`: Grade de conferência de backups (Full/Diff/Trans).
 - `ALERTS`: Tabela consolidada de erros críticos e avisos.
 
+## 📦 Compilação (Executável)
+
+O projeto está configurado para gerar um executável Windows (`.exe`) independente, utilizando o **Nexe**.
+
+### Como gerar o pacote:
+1. Compile o TypeScript e gere o executável:
+   ```bash
+   npm run nexe
+   ```
+2. O arquivo será gerado na pasta `/package` com o nome `SmartMonitor_release_[timestamp].exe`.
+
+> **Nota sobre Módulos Nativos**: Como o projeto usa `SQLCipher`, certifique-se de que a estrutura de `node_modules` necessária esteja presente caso o executável exiba erros de carregamento de driver binário em ambientes limpos.
+
 ---
 Desenvolvido com foco em **Estabilidade** e **Baixo Overhead**.
