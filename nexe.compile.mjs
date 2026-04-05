@@ -5,6 +5,7 @@ compile({
   output: `./package/SmartMonitor_release_${new Date().getTime()}.exe`,
   build: true, // required to use patches
   verbose: true,
+  ico: "./DevSmart.ico",
   patches: [
     async (compiler, next) => {
       // Caso queira virtualizar algo no binário futuramente
