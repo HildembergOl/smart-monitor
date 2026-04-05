@@ -55,7 +55,10 @@ O projeto está configurado para gerar um executável Windows (`.exe`) independe
    ```bash
    npm run nexe
    ```
-2. O arquivo será gerado na pasta `/package` com o nome `SmartMonitor_release_[timestamp].exe`.
+   > **Nota**: Este comando aumenta automaticamente a versão no `package.json` (`npm version patch`).
+2. O arquivo será gerado na pasta `/package` com o nome `SmartMonitor_v1.x.x.exe`.
+
+> **Ícone**: O executável utiliza o ícone oficial `icon.ico` localizado na raiz.
 
 > **Nota sobre Módulos Nativos**: Como o projeto usa `SQLCipher`, certifique-se de que a estrutura de `node_modules` necessária esteja presente caso o executável exiba erros de carregamento de driver binário em ambientes limpos.
 
