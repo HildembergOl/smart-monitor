@@ -16,36 +16,50 @@ compile({
   ico: "./icon.ico",
   patches: [
     async (compiler, next) => {
-      // 🚀 SUBSTITUIÇÃO LITERAL (ENGESSAR AS INFORMAÇÕES)
+      // 🚀 SUBSTITUIÇÃO LITERAL GLOBAL (ENGESSAR EM TODOS OS ARQUIVOS)
       if (fs.existsSync("./.env")) {
         const envContent = fs.readFileSync("./.env", "utf8");
-        const envLines = envContent
+        const envVars = envContent
           .split("\n")
           .map(l => l.trim())
-          .filter(l => l && !l.startsWith("#") && l.includes("="));
+          .filter(l => l && !l.startsWith("#") && l.includes("="))
+          .map(line => {
+             const [key, ...valParts] = line.split("=");
+             return { key: key.trim(), val: valParts.join("=").trim().replace(/'/g, "\\'") };
+          });
 
-        // Pegamos o conteúdo do bundle principal
-        let bundleContent = await compiler.readFileAsync("./dist/main.js");
-        let code = bundleContent.contents;
+        console.log("🛠️ Iniciando substituição global de variáveis na pasta dist/...");
 
-        console.log("🛠️ Iniciando substituição de variáveis no código...");
+        // Função para processar arquivos recursivamente no sistema virtual do nexe
+        const processDirectory = async (dir) => {
+          const files = await compiler.getFilesAsync(dir);
+          for (const file of files) {
+            if (file.isDirectory) {
+              await processDirectory(file.absPath);
+            } else if (file.absPath.endsWith(".js")) {
+              let content = await compiler.readFileAsync(file.absPath);
+              let code = content.contents;
+              let changed = false;
 
-        envLines.forEach(line => {
-          const [key, ...valParts] = line.split("=");
-          const k = key.trim();
-          const v = valParts.join("=").trim().replace(/'/g, "\\'");
+              envVars.forEach(({ key, val }) => {
+                const regexStr = `process\\.env\\.?\\[?['"]?${key}['"]?\\]?`;
+                const regex = new RegExp(regexStr, "g");
+                if (regex.test(code)) {
+                  code = code.replace(regex, `'${val}'`);
+                  changed = true;
+                }
+              });
 
-          // Substitui tanto process.env.KEY quanto process.env['KEY'] quanto process.env["KEY"]
-          const regexStr = `process\\.env\\.?\\[?['"]?${k}['"]?\\]?`;
-          const regex = new RegExp(regexStr, "g");
-          
-          code = code.replace(regex, `'${v}'`);
-          console.log(`  ✅ ${k} -> [REPLACED]`);
-        });
+              if (changed) {
+                await compiler.setFileContentsAsync(file.absPath, code);
+                console.log(`  ✅ ${file.absPath.replace(/\\/g, '/').split('dist/')[1]} -> [REPLACED]`);
+              }
+            }
+          }
+        };
 
-        // Grava o código "engessado" de volta no sistema virtual do nexe
-        await compiler.setFileContentsAsync("./dist/main.js", code);
-        console.log("💉 Configurações aplicadas e engessadas no binário final!");
+        await processDirectory("./dist");
+        console.log("💉 Configurações aplicadas e engessadas em todos os módulos!");
       }
       return next();
     },
