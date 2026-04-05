@@ -1,9 +1,12 @@
 {
   "name": "smart-monitor",
-  "version": "1.0.1",
+  "version": "1.0.3",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "main": "src/main.ts",
   "scripts": {
-    "start": "tsx --no-warnings src/main.ts",
+    "start": "tsx --no-warnings --env-file=.env src/main.ts",
     "build": "tsc",
     "nexe": "npm version patch --no-git-tag-version && npm run build && node nexe.compile.mjs"
   },

@@ -1,5 +1,20 @@
-import "dotenv/config";
 import { iniciarAgendamentos } from "./backup/scheduler";
+import { join } from "path";
+import { existsSync } from "fs";
+
+// Tentativa de carregar .env nativamente se o arquivo existir ao lado do executável
+// (Útil para o executável compilado carregar configurações dinâmicas)
+const envPath = join(process.cwd(), ".env");
+if (existsSync(envPath)) {
+  try {
+    // @ts-ignore - loadEnvFile é nativo no Node 20.6+
+    process.loadEnvFile(envPath);
+    console.log("📝 Arquivo .env detectado e carregado.");
+  } catch (e) {
+    // Silencioso se falhar
+  }
+}
+
 import { dbSqlite } from "./database/sqlite";
 import { initDB } from "./database/sqlite-init";
 import { loadConfig } from "./database/sqlite.-load";
