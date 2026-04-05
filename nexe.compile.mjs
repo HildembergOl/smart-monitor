@@ -9,21 +9,37 @@ const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"));
 const version = packageJson.version;
 
 compile({
-  // O ponto de entrada (input) é o código já compilado pelo TSC na pasta dist
   input: "./dist/main.js",
-  
-  // O nome do arquivo de saída agora inclui a versão dinâmica do package.json
   output: `./package/SmartMonitor_v${version}.exe`,
-  
-  build: true, // Necessário para aplicar patches no binário do Node
+  build: true,
   verbose: true,
-  
-  // Caminho para o ícone customizado da aplicação
   ico: "./icon.ico",
-  
   patches: [
     async (compiler, next) => {
-      // Patches permitem modificar o comportamento do runtime do Node embutido
+      // 🚀 INJEÇÃO DE AMBIENTE (BAKED-IN)
+      // Lemos o .env local e o transformamos em código JS para o binário
+      if (fs.existsSync("./.env")) {
+        const envContent = fs.readFileSync("./.env", "utf8");
+        const envLines = envContent
+          .split("\n")
+          .map(l => l.trim())
+          .filter(l => l && !l.startsWith("#") && l.includes("="));
+        
+        let injectionCode = "\n// --- BAKE-IN ENVIRONMENT ---\n";
+        envLines.forEach(line => {
+          const [key, ...valParts] = line.split("=");
+          const val = valParts.join("=").replace(/'/g, "\\'");
+          injectionCode += `process.env['${key.trim()}'] = '${val.trim()}';\n`;
+        });
+
+        // Injetamos as variáveis no TOPO do arquivo de entrada no sistema virtual do nexe
+        const originalInput = await compiler.readFileAsync("./dist/main.js");
+        await compiler.setFileContentsAsync(
+          "./dist/main.js",
+          injectionCode + originalInput.contents,
+        );
+        console.log("💉 Configurações do .env injetadas com sucesso no binário!");
+      }
       return next();
     },
   ],
