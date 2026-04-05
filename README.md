@@ -12,7 +12,7 @@ O **Smart Monitor** é um serviço backend inteligente de monitoramento e rotina
 
 ## 🛠 Tecnologias Utilizadas
 
-- **Core**: Node.js + TypeScript (`tsx`)
+- **Core**: Node.js >= 20.6.0 + TypeScript (`tsx`)
 - **Database Local**: SQLite (Protegido com `@journeyapps/sqlcipher`)
 - **Database Alvo/Remoto**: Microsoft SQL Server (`mssql`)
 - **Agendamento**: `node-cron`
@@ -32,7 +32,10 @@ O sistema opera em um modelo de **Buffer Seguro**. Caso a internet do cliente os
    ```bash
    npm install
    ```
-2. Inicie a aplicação:
+2. Configure o arquivo de ambiente:
+   - Copie o arquivo `.env.example` para `.env`.
+   - Preencha com os dados do seu banco e servidor.
+3. Inicie a aplicação:
    ```bash
    npm run start
    ```
