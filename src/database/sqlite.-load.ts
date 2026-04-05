@@ -80,7 +80,9 @@ export async function loadConfig() {
     },
   };
 
-  // Sobrescreve configurações via variáveis de ambiente (.env) se existirem
+  // 🛡️ REGRAS DE AUTORIDADE (THE BUILD IS THE LAW)
+  // Sobrescreve OBRIGATORIAMENTE o que veio do banco SQLite com o que foi definido no Build/Env
+  // Isso impede que alterações manuais no arquivo .db alterem o comportamento da nuvem/segurança.
   if (process.env.PROD_SERVER) config.ambiente.producao.server = process.env.PROD_SERVER;
   if (process.env.PROD_USER) config.ambiente.producao.user = process.env.PROD_USER;
   if (process.env.PROD_PASS) config.ambiente.producao.password = process.env.PROD_PASS;

@@ -1,6 +1,18 @@
 import { iniciarAgendamentos } from "./backup/scheduler";
 import { dbSqlite } from "./database/sqlite";
 import { initDB } from "./database/sqlite-init";
+
+// 👮 Validação de Integridade do Ambiente (Baking security)
+const mandatoryEnv = ["SQLITE_PASSWORD", "PROD_SERVER", "PROD_USER", "PROD_PASS", "PROD_DATABASE"];
+const missing = mandatoryEnv.filter(key => !process.env[key]);
+
+if (missing.length > 0) {
+  console.error("🔥 ERRO FATAL: Falha de integridade do executável.");
+  console.error(`Variáveis obrigatórias ausentes: ${missing.join(", ")}`);
+  console.error("A aplicação não pode ser executada sem as configurações originais do desenvolvedor.");
+  process.exit(1);
+}
+
 import { loadConfig } from "./database/sqlite.-load";
 import { editarConfig } from "./backup/menu";
 import readline from "readline";

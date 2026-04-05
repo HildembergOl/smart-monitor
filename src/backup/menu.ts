@@ -49,14 +49,15 @@ export async function criarConfigCompleto() {
         },
       },
       producao: {
-        user: "",
-        password: "",
-        server: "",
-        database: "",
-        port: 1433,
+        user: process.env.PROD_USER || "",
+        password: process.env.PROD_PASS || "",
+        server: process.env.PROD_SERVER || "",
+        database: process.env.PROD_DATABASE || "",
+        port: Number(process.env.PROD_PORT) || 1433,
         options: {
-          encrypt: false,
-          trustServerCertificate: true,
+          encrypt: process.env.PROD_ENCRYPT === "1" ? true : false,
+          trustServerCertificate:
+            process.env.PROD_TRUST_CERT === "1" ? true : false,
         },
       },
     };
@@ -64,14 +65,14 @@ export async function criarConfigCompleto() {
 
   if (!global.AppConfig?.email) {
     global.AppConfig.email = {
-      host: "smtp.titan.email",
-      port: 587,
-      secure: true,
+      host: process.env.EMAIL_HOST || "",
+      port: Number(process.env.EMAIL_PORT) || 587,
+      secure: process.env.EMAIL_SECURE === "1" ? true : false,
       auth: {
-        user: "naoresponder@devsmart.com",
-        pass: "devSmart@80@",
+        user: process.env.EMAIL_USER || "",
+        pass: process.env.EMAIL_PASS || "",
       },
-      to: "projetos@devsmart.com.br;gleison@devsmart.com.br",
+      to: process.env.EMAIL_TO || "",
     };
   }
 
