@@ -7,9 +7,8 @@ export async function checkDBIntegrity(clientId: number) {
       .request()
       .query("DBCC CHECKDB WITH NO_INFOMSGS, ALL_ERRORMSGS;");
 
-    // O pulo do gato: se usar NO_INFOMSGS e o banco estiver 100% saudável,
-    // o SQL Server não retorna NADA (um array vazio).
-    if (result.recordset.length === 0) {
+    // Se o banco estiver saudável e usarmos NO_INFOMSGS, o recordset pode vir indefinido ou zerado
+    if (!result.recordset || result.recordset.length === 0) {
       return {
         client_id: clientId,
         check: "CHECKDB",

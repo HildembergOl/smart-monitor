@@ -25,6 +25,7 @@ export async function loadConfig() {
 
   // Monta o objeto no formato JSON esperado
   const config = {
+    client_id: configRow.client_id || 1,
     enterprise: configRow.enterprise,
     ambiente: {
       local: {

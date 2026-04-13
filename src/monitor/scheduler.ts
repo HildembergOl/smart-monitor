@@ -27,25 +27,25 @@ export const startScheduler = () => {
     console.log("Iniciando varredura diária de integridade e logs...");
 
     // 1. CHECKDB
-    const checkdb = await checkDBIntegrity(1);
+    const checkdb = await checkDBIntegrity(global.AppConfig.client_id);
     await saveResult(checkdb);
     if (checkdb.status === "FAIL")
       await sendAlert("HIGH", `Falha no CHECKDB: ${checkdb.details}`);
 
     // 2. CHECKALLOC
-    const checkalloc = await checkAlloc(1);
+    const checkalloc = await checkAlloc(global.AppConfig.client_id);
     await saveResult(checkalloc);
     if (checkalloc.status === "FAIL")
       await sendAlert("HIGH", `Falha no CHECKALLOC: ${checkalloc.details}`);
 
     // 3. CHECKCATALOG
-    const checkcatalog = await checkCatalog(1);
+    const checkcatalog = await checkCatalog(global.AppConfig.client_id);
     await saveResult(checkcatalog);
     if (checkcatalog.status === "FAIL")
       await sendAlert("HIGH", `Falha no CHECKCATALOG: ${checkcatalog.details}`);
 
     // 4. CHECKCONSTRAINTS
-    const checkconstraints = await checkConstraints(1);
+    const checkconstraints = await checkConstraints(global.AppConfig.client_id);
     await saveResult(checkconstraints);
     if (checkconstraints.status === "FAIL")
       await sendAlert(
@@ -54,7 +54,7 @@ export const startScheduler = () => {
       );
 
     // 5. CHECKFILEGROUP
-    const checkfilegroup = await checkFileGroup(1);
+    const checkfilegroup = await checkFileGroup(global.AppConfig.client_id);
     await saveResult(checkfilegroup);
     if (checkfilegroup.status === "FAIL")
       await sendAlert(
@@ -63,7 +63,7 @@ export const startScheduler = () => {
       );
 
     // 6. ERROR LOGS SYSTEM
-    const checklogs = await checkLogs(1);
+    const checklogs = await checkLogs(global.AppConfig.client_id);
     await saveResult(checklogs);
     if (checklogs.status === "FAIL")
       await sendAlert(
@@ -72,7 +72,7 @@ export const startScheduler = () => {
       );
 
     // 7. BACKUPS
-    const backups = await checkBackups(1);
+    const backups = await checkBackups(global.AppConfig.client_id);
     for (const b of backups) {
       await saveBackups(b);
       if (b.status === "FAIL") {
@@ -88,7 +88,7 @@ export const startScheduler = () => {
 
   // A cada 15 min
   const task15Min = cron.schedule("*/15 * * * *", async () => {
-    const metrics = await collectMetrics(1);
+    const metrics = await collectMetrics(global.AppConfig.client_id);
     await saveMetrics(metrics);
     console.log("Métricas coletadas e salvas. 📊");
   });

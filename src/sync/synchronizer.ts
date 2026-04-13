@@ -9,18 +9,25 @@ export async function synchronizeData() {
     // 1. Tenta inicializar pool de produção
     const pool = await db("remote").catch(async (e) => {
       // Registra o erro no banco SQLite (sem encher de duplicatas)
-      const existing = await localDb.get("SELECT id FROM ALERTS WHERE message LIKE 'Banco da nuvem inacessível%' AND resolved = 0");
+      const existing = await localDb.get(
+        "SELECT id FROM ALERTS WHERE message LIKE 'Banco da nuvem inacessível%' AND resolved = 0",
+      );
       if (!existing) {
-        await localDb.run("INSERT INTO ALERTS (severity, message) VALUES (?, ?)", [
-          "WARNING",
-          `Banco da nuvem inacessível (${e instanceof Error ? e.message : String(e)}). Tentando novamente no próximo ciclo...`
-        ]);
+        await localDb.run(
+          "INSERT INTO ALERTS (severity, message) VALUES (?, ?)",
+          [
+            "WARNING",
+            `Banco da nuvem inacessível (${e instanceof Error ? e.message : String(e)}). Tentando novamente no próximo ciclo...`,
+          ],
+        );
       }
       return null;
     });
 
     if (!pool) {
-      console.log("☁️ [Sincronização] Banco cloud inacessível. O erro foi registrado nos logs do SQLite. Retentando depois...");
+      console.log(
+        "☁️ [Sincronização] Banco cloud inacessível. O erro foi registrado nos logs do SQLite. Retentando depois...",
+      );
       return;
     }
 
@@ -43,31 +50,39 @@ export async function synchronizeData() {
         ps.input("disk", sql.Float);
         ps.input("bak", sql.DateTime);
         ps.input("login", sql.Int);
+        ps.input("mem_total", sql.Float);
 
         await ps.prepare(`
-          INSERT INTO METRICS (client_id, cpu_usage, memory_usage, active_sessions, avg_query_time, deadlocks, db_state, free_disk_space, last_backup, failed_logins)
-          VALUES (@client_id, @cpu, @mem, @sess, @query, @dead, @state, @disk, @bak, @login)
+          INSERT INTO METRICS (client_id, cpu_usage, memory_usage, active_sessions, avg_query_time, deadlocks, db_state, free_disk_space, last_backup, failed_logins, memory_total)
+          VALUES (@client_id, @cpu, @mem, @sess, @query, @dead, @state, @disk, @bak, @login, @mem_total)
         `);
 
         // SQL Server rejects 'null' for DateTimes if not properly handled or if passed empty string
         const last_backup = row.last_backup ? new Date(row.last_backup) : null;
-        
+
+        const cpu_usage = Number(row.cpu_usage || 0);
+        const memory_usage = Number(row.memory_usage || 0);
+        const memory_total = Number(row.memory_total || 0);
+
         await ps.execute({
-          client_id: row.client_id,
-          cpu: row.cpu_usage || 0,
-          mem: row.memory_usage || 0,
+          client_id: row.client_id || 1,
+          cpu: Math.min(Math.max(cpu_usage, 0), 100), // Garante 0-100
+          mem: Math.round(memory_usage * 100) / 100, // Round 2 dec
           sess: row.active_sessions || 0,
           query: row.avg_query_time || 0,
           dead: row.deadlocks || 0,
           state: row.db_state || "UNKNOWN",
           disk: row.free_disk_space || 0,
           bak: isNaN(last_backup?.getTime() || 1) ? null : last_backup,
-          login: row.failed_logins || 0
+          login: row.failed_logins || 0,
+          mem_total: Math.round(memory_total * 100) / 100,
         });
         await ps.unprepare();
-        
+
         // Atualiza como processado
-        await localDb.run(`UPDATE METRICS SET synced = 1 WHERE id = ?`, [row.id]);
+        await localDb.run(`UPDATE METRICS SET synced = 1 WHERE id = ?`, [
+          row.id,
+        ]);
         recordsSynced++;
       }
     }
@@ -75,7 +90,9 @@ export async function synchronizeData() {
     // -------------------------------------------------------------
     // Sincronização CHECKS_LOG
     // -------------------------------------------------------------
-    const checks = await localDb.all(`SELECT * FROM CHECKS_LOG WHERE synced = 0`);
+    const checks = await localDb.all(
+      `SELECT * FROM CHECKS_LOG WHERE synced = 0`,
+    );
     if (checks && checks.length > 0) {
       for (const row of checks) {
         const ps = new sql.PreparedStatement(pool);
@@ -83,21 +100,23 @@ export async function synchronizeData() {
         ps.input("checkName", sql.VarChar);
         ps.input("status", sql.VarChar);
         ps.input("details", sql.VarChar);
-        
+
         await ps.prepare(`
           INSERT INTO CHECKS_LOG (client_id, check_name, status, details)
           VALUES (@client_id, @checkName, @status, @details)
         `);
-        
+
         await ps.execute({
           client_id: row.client_id,
           checkName: row.check_name,
           status: row.status,
-          details: row.details
+          details: row.details,
         });
         await ps.unprepare();
 
-        await localDb.run(`UPDATE CHECKS_LOG SET synced = 1 WHERE id = ?`, [row.id]);
+        await localDb.run(`UPDATE CHECKS_LOG SET synced = 1 WHERE id = ?`, [
+          row.id,
+        ]);
         recordsSynced++;
       }
     }
@@ -105,7 +124,9 @@ export async function synchronizeData() {
     // -------------------------------------------------------------
     // Sincronização BACKUP_LOG
     // -------------------------------------------------------------
-    const backups = await localDb.all(`SELECT * FROM BACKUP_LOG WHERE synced = 0`);
+    const backups = await localDb.all(
+      `SELECT * FROM BACKUP_LOG WHERE synced = 0`,
+    );
     if (backups && backups.length > 0) {
       for (const row of backups) {
         const ps = new sql.PreparedStatement(pool);
@@ -114,12 +135,12 @@ export async function synchronizeData() {
         ps.input("lastBackup", sql.DateTime);
         ps.input("type", sql.VarChar);
         ps.input("status", sql.VarChar);
-        
+
         await ps.prepare(`
           INSERT INTO BACKUP_LOG (client_id, database_name, last_backup, backup_type, status)
           VALUES (@client_id, @dbName, @lastBackup, @type, @status)
         `);
-        
+
         const bdate = row.last_backup ? new Date(row.last_backup) : null;
 
         await ps.execute({
@@ -127,11 +148,13 @@ export async function synchronizeData() {
           dbName: row.database_name,
           lastBackup: isNaN(bdate?.getTime() || 1) ? null : bdate,
           type: row.backup_type,
-          status: row.status
+          status: row.status,
         });
         await ps.unprepare();
 
-        await localDb.run(`UPDATE BACKUP_LOG SET synced = 1 WHERE id = ?`, [row.id]);
+        await localDb.run(`UPDATE BACKUP_LOG SET synced = 1 WHERE id = ?`, [
+          row.id,
+        ]);
         recordsSynced++;
       }
     }
@@ -146,31 +169,37 @@ export async function synchronizeData() {
         ps.input("client_id", sql.Int);
         ps.input("severity", sql.VarChar);
         ps.input("message", sql.VarChar);
-        
+
         await ps.prepare(`
           INSERT INTO ALERTS (client_id, severity, message)
           VALUES (@client_id, @severity, @message)
         `);
-        
+
         await ps.execute({
           client_id: row.client_id || 1, // Fallback p/ 1 se a tabela de alertas locais não estiver gravando client_id
           severity: row.severity,
-          message: row.message
+          message: row.message,
         });
         await ps.unprepare();
 
-        await localDb.run(`UPDATE ALERTS SET synced = 1 WHERE id = ?`, [row.id]);
+        await localDb.run(`UPDATE ALERTS SET synced = 1 WHERE id = ?`, [
+          row.id,
+        ]);
         recordsSynced++;
       }
     }
 
     if (recordsSynced > 0) {
-      console.log(`☁️ [Sincronização] Concluída com sucesso! ${recordsSynced} registros enviados ao Cloud.`);
+      console.log(
+        `☁️ [Sincronização] Concluída com sucesso! ${recordsSynced} registros enviados ao Cloud.`,
+      );
     }
-
   } catch (error) {
     if (error instanceof Error) {
-      console.error("☁️ [Sincronização] Erro durante push para a nuvem:", error.message);
+      console.error(
+        "☁️ [Sincronização] Erro durante push para a nuvem:",
+        error.message,
+      );
     }
   }
 }

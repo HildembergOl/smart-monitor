@@ -7,7 +7,7 @@ export async function checkAlloc(clientId: number) {
       .request()
       .query("DBCC CHECKALLOC WITH NO_INFOMSGS, ALL_ERRORMSGS;");
 
-    if (result.recordset.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return {
         client_id: clientId,
         check: "CHECKALLOC",

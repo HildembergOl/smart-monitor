@@ -57,6 +57,6 @@ O projeto foi desenvolvido para funcionar continuamente ("24/7") como um serviç
   4. **ALERTS**: Tabela de notificação textual onde os crashs, perdas de conexão com a cloud ou falhas internas aparecem categorizados como `CRITICAL` ou `WARNING`.
 
 ### 5. Segurança e Empacotamento
-- **Configurações Engessadas (Baked-in)**: Para evitar arquivos `.env` externos no cliente, o processo de build (`nexe.compile.mjs`) realiza uma substituição literal de strings no código-fonte, "chumbando" o IP, Usuário e Senhas de produção diretamente dentro do binário.
+- **Configurações Engessadas (Baked-in)**: Para evitar arquivos `.env` externos no cliente, o processo de build (`nexe.compile.mjs`) injeta nativamente todos os valores formatados do `.env` dentro do `process.env` no topo da inicialização do _main.js_, "chumbando" as credenciais na memória RAM e garantindo que todos os submódulos da aplicação acessem os dados sem falhas.
 - **Versionamento Automático**: O build gerencia o versionamento via `npm version patch` e gera executáveis nomeados dinamicamente (ex: `SmartMonitor_v1.0.8.exe`).
 - **Independência**: O executável é 100% portátil, exigindo apenas que os drivers nativos do SQLCipher (presentes no `node_modules` durante o build) sejam empacotados corretamente para execução em ambientes Windows x64.

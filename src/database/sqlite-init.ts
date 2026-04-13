@@ -7,6 +7,7 @@ export async function initDB() {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS CONFIG (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER DEFAULT 1,
       enterprise TEXT,
 
       -- Ambiente Local
@@ -145,8 +146,27 @@ export async function initDB() {
     await db.exec(`ALTER TABLE CONFIG ADD COLUMN prod_port INTEGER`);
     console.log("🔄 Migração: Coluna 'prod_port' adicionada à tabela CONFIG.");
   } catch (error) {
-    // A coluna provavelmente já existe, podemos ignorar o erro do SQLite
     console.log("🔄 Migração: Coluna 'prod_port' já existe na tabela CONFIG.");
+  } finally {
+    console.log("🔄 Migração: Alteração concluída.");
+  }
+
+  // Migração para METRICS
+  try {
+    await db.exec(`ALTER TABLE METRICS ADD COLUMN memory_total REAL`);
+    console.log("🔄 Migração: Coluna 'memory_total' adicionada à tabela METRICS.");
+  } catch (error) {
+    console.log("🔄 Migração: Coluna 'memory_total' já existe na tabela METRICS.");
+  } finally {
+    console.log("🔄 Migração: Alteração concluída.");
+  }
+
+  // Migração para CONFIG (client_id)
+  try {
+    await db.exec(`ALTER TABLE CONFIG ADD COLUMN client_id INTEGER DEFAULT 1`);
+    console.log("🔄 Migração: Coluna 'client_id' adicionada à tabela CONFIG.");
+  } catch (error) {
+    console.log("🔄 Migração: Coluna 'client_id' já existe na tabela CONFIG.");
   } finally {
     console.log("🔄 Migração: Alteração concluída.");
   }

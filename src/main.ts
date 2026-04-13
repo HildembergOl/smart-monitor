@@ -23,12 +23,16 @@ const gracefulShutdown = async (signal: string) => {
   process.exit(0);
 };
 
-// 🎹 Keypress Events (Registrados, mas o Raw Mode só será ativado depois do main)
-readline.emitKeypressEvents(process.stdin);
+let menuActive = false;
 
-process.stdin.on("keypress", async (str, key) => {
-  // Captura CTRL+C para encerrar manualmente, pois o raw mode intercepta esse sinal
-  if (key.ctrl && key.name === "c") {
+// 🎹 Manuseio manual de teclas para evitar conflitos de stream
+const handleInput = async (data: Buffer) => {
+  if (menuActive) return;
+
+  const hex = data.toString("hex");
+
+  // Captura CTRL+C (\x03)
+  if (hex === "03") {
     console.log("\n👋 Encerrando Smart Monitor...");
     try {
       const db = await dbSqlite();
@@ -42,24 +46,36 @@ process.stdin.on("keypress", async (str, key) => {
     process.exit(0);
   }
 
-  if (key.ctrl && key.name === "r") {
+  // Captura CTRL+R (\x12)
+  if (hex === "12") {
     console.log("\n🔄 Atalho CTRL+R detectado!");
 
-    // Desliga raw mode para que o readline-sync possa ecoar as teclas
+    menuActive = true;
+
+    // Desativa modo bruto e remove listener para o menu
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(false);
     }
+    process.stdin.removeListener("data", handleInput);
 
     await editarConfig();
     iniciarAgendamentos();
 
-    // Retoma o estado do terminal (o readline-sync internamente pausa e altera o stdin)
+    // Reativa modo bruto e listener
     if (process.stdin.isTTY) {
+      // Limpa o buffer de entrada
+      while (process.stdin.read() !== null);
       process.stdin.setRawMode(true);
     }
+    process.stdin.on("data", handleInput);
     process.stdin.resume();
+
+    menuActive = false;
+    console.log("\n✅ Monitoramento retomado. (CTRL+R: Menu | CTRL+C: Sair)");
   }
-});
+};
+
+process.stdin.on("data", handleInput);
 
 // Previne o encerramento da aplicação por erros não tratados
 process.on("uncaughtException", async (error) => {

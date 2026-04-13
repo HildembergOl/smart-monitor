@@ -1,0 +1,30 @@
+node:internal/modules/cjs/loader:1232
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\SmartDeveloper\Smart Backup\smart-monitor\package\node_modules\@journeyapps\sqlcipher\lib\binding\napi-v6-win32-x64\node_sqlite3.node'
+Require stack:
+- C:\SmartDeveloper\Smart Backup\smart-monitor\package\node_modules\@journeyapps\sqlcipher\lib\sqlite3-binding.js
+- C:\SmartDeveloper\Smart Backup\smart-monitor\package\node_modules\@journeyapps\sqlcipher\lib\sqlite3.js
+- C:\SmartDeveloper\Smart Backup\smart-monitor\package\dist\database\sqlite.js
+- C:\SmartDeveloper\Smart Backup\smart-monitor\package\dist\main.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1229:15)
+    at Module._load (node:internal/modules/cjs/loader:1060:27)
+    at Module.require (node:internal/modules/cjs/loader:1311:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (C:\SmartDeveloper\Smart Backup\smart-monitor\package\node_modules\@journeyapps\sqlcipher\lib\sqlite3-binding.js:4:15)
+    at Module._compile (node:internal/modules/cjs/loader:1543:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1645:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1113:12)
+    at Module.require (node:internal/modules/cjs/loader:1311:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\SmartDeveloper\\Smart Backup\\smart-monitor\\package\\node_modules\\@journeyapps\\sqlcipher\\lib\\sqlite3-binding.js',
+    'C:\\SmartDeveloper\\Smart Backup\\smart-monitor\\package\\node_modules\\@journeyapps\\sqlcipher\\lib\\sqlite3.js',
+    'C:\\SmartDeveloper\\Smart Backup\\smart-monitor\\package\\dist\\database\\sqlite.js',
+    'C:\\SmartDeveloper\\Smart Backup\\smart-monitor\\package\\dist\\main.js'
+  ]
+}
+
+Node.js v20.20.0

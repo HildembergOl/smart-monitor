@@ -5,7 +5,7 @@ export async function checkConstraints(clientId: number) {
     const pool = await db("local");
     const result = await pool.request().query("DBCC CHECKCONSTRAINTS WITH NO_INFOMSGS, ALL_ERRORMSGS;");
 
-    if (result.recordset.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return {
         client_id: clientId,
         check: "CHECKCONSTRAINTS",

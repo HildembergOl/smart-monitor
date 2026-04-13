@@ -3,9 +3,9 @@ import { db } from "../../database/sqlserver";
 export async function checkCatalog(clientId: number) {
   try {
     const pool = await db("local");
-    const result = await pool.request().query("DBCC CHECKCATALOG WITH NO_INFOMSGS, ALL_ERRORMSGS;");
+    const result = await pool.request().query("DBCC CHECKCATALOG WITH NO_INFOMSGS;");
 
-    if (result.recordset.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return {
         client_id: clientId,
         check: "CHECKCATALOG",

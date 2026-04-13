@@ -95,3 +95,34 @@ export async function getDatabases() {
     return undefined;
   }
 }
+export async function validateClientCloud(clientId: number, enterprise: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const pool = await db("remote");
+    const result = await pool.request()
+      .input("id", sql.Int, clientId)
+      .query<{ name: string }>(
+        "SELECT name FROM CLIENTS WHERE client_id = @id AND active = 1"
+      );
+
+    if (result.recordset.length === 0) {
+      return { success: false, message: `ID do Cliente ${clientId} não encontrado ou inativo no Cloud.` };
+    }
+
+    const cloudName = result.recordset[0].name.trim().toUpperCase().replaceAll(" ", "_");
+    const localName = enterprise.trim().toUpperCase().replaceAll(" ", "_");
+
+    if (cloudName !== localName) {
+      return { 
+        success: false, 
+        message: `Vínculo inválido! No Cloud, o ID ${clientId} pertence à empresa '${cloudName}', mas você informou '${localName}'.` 
+      };
+    }
+
+    return { success: true, message: "Validado com sucesso!" };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: `Erro ao conectar com o Cloud para validação: ${error instanceof Error ? error.message : String(error)}` 
+    };
+  }
+}

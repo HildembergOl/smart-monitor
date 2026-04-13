@@ -35,6 +35,7 @@ export interface EmailConfig {
 }
 
 export interface AppConfiguration {
+  client_id: number;
   enterprise: string;
   ambiente: {
     local: AmbienteConfig;

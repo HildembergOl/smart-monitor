@@ -17,8 +17,15 @@ export async function salvarConfig() {
 
   const databases = await getDatabases();
   if (databases) {
-    config.ambiente.local.database = databases.join(",");
-    console.log(`\n 🚦Bancos de dados encontrados: ${databases.join(",")}`);
+    config.ambiente.local.database = databases
+      .filter(
+        (db) =>
+          ["SUV", "SMART"].includes(db.toUpperCase()) && !db.includes("TEST"),
+      )
+      .join(",");
+    console.log(
+      `\n 🚦Bancos de dados encontrados: ${config.ambiente.local.database}`,
+    );
   }
 
   config.enterprise = config.enterprise
@@ -30,7 +37,8 @@ export async function salvarConfig() {
     id = existing.id;
     await db.run(
       `UPDATE CONFIG 
-          SET enterprise=?, 
+          SET client_id=?,
+              enterprise=?, 
               local_server=?, 
               local_user=?, 
               local_password=?, 
@@ -60,6 +68,7 @@ export async function salvarConfig() {
               backup_retencao=? 
           WHERE id=?`,
       [
+        config.client_id,
         config.enterprise,
         config.ambiente.local.server,
         config.ambiente.local.user,
@@ -94,12 +103,13 @@ export async function salvarConfig() {
   } else {
     const result = await db.run(
       `INSERT INTO CONFIG 
-         (enterprise, local_server, local_user, local_password, local_database, local_encrypt, local_trustServerCertificate, 
+         (client_id, enterprise, local_server, local_user, local_password, local_database, local_encrypt, local_trustServerCertificate, 
           local_port, prod_server, prod_user, prod_password, prod_database, prod_encrypt, prod_trustServerCertificate, prod_port, 
           email_host, email_port, email_secure, email_auth_user, email_auth_pass, email_to, backup_local_path, backup_remote_path, 
           backup_compressao, backup_full, backup_diferencial, backup_transacao, backup_retencao)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        config.client_id,
         config.enterprise,
         config.ambiente.local.server,
         config.ambiente.local.user,
@@ -163,18 +173,6 @@ export async function salvarConfig() {
         `DELETE FROM BACKUP_TIME WHERE config_id = ? AND type = 'TRANSACAO'`,
         [id],
       );
-      for (const h of config.backup.time_transacao) {
-        await db.run(
-          `INSERT INTO BACKUP_TIME (config_id, type, cron_expression) VALUES (?, 'TRANSACAO', ?)`,
-          [id, h],
-        );
-      }
-      for (const h of config.backup.time_diferencial) {
-        await db.run(
-          `INSERT INTO BACKUP_TIME (config_id, type, cron_expression) VALUES (?, 'DIFERENCIAL', ?)`,
-          [id, h],
-        );
-      }
       for (const h of config.backup.time_transacao) {
         await db.run(
           `INSERT INTO BACKUP_TIME (config_id, type, cron_expression) VALUES (?, 'TRANSACAO', ?)`,
